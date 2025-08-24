@@ -4,6 +4,18 @@ export const typeDefs = gql`
     user(id: ID!): User
     users: [User!]!
   }
+  type Mutation {
+    createUser(user: InputRegister): ResponseRegister
+  }
+  type ResponseRegister {
+    message: String!
+    user: User
+  }
+  input InputRegister {
+    username: String!
+    email: String!
+    password: String!
+  }
 
   type User {
     id: ID!

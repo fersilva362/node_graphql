@@ -21,7 +21,6 @@ export const resolvers = {
     users: async (obj, args, { prisma }) => {
       console.log(prisma);
       try {
-        await prisma.$queryRaw`SELECT 1`;
         const users = await prisma.users.findMany();
         console.log(users);
         return users;
@@ -31,8 +30,37 @@ export const resolvers = {
       }
     },
   },
-
   User: {
     id: (obj) => obj._id,
+  },
+  Mutation: {
+    createUser: async (_, { user }, { prisma }) => {
+      try {
+        const handlePassword = await bcrypt.hash(user.password, SALT_ROUNDS);
+        /*  username: String!
+    email: String!
+    password: String! */
+        const result = await prisma.users.create({
+          data: {
+            username: user.username,
+            email: user.email,
+            password: handlePassword,
+          },
+        });
+        const safeResult = {
+          ...result,
+          password: undefined,
+          id: result.id.toString(),
+        };
+        console.log(safeResult + " result");
+        return {
+          message: "user registered",
+          user: safeResult,
+        };
+      } catch (error) {
+        console.log(error);
+        throw new Error(error.toString());
+      }
+    },
   },
 };
