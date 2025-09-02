@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { performance } from "perf_hooks";
+
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "worlsecretkey";
 
@@ -18,12 +18,19 @@ export const resolvers = {
         return {};
       }
     },
-    users: async (obj, args, { prisma }) => {
+    users: async (obj, args, { prisma, userVerified }) => {
+      if (!userVerified) {
+        throw new Error("Invalid token");
+      }
       console.log(prisma);
       try {
         const users = await prisma.users.findMany();
-        console.log(users);
-        return users;
+        const safeResultArray = users.map((result) => ({
+          ...result,
+          password: undefined,
+          id: result.id.toString(),
+        }));
+        return safeResultArray;
       } catch (error) {
         console.error("Prisma error:", error);
         throw new Error("Failed to fetch users: " + error.message);
@@ -56,6 +63,40 @@ export const resolvers = {
         return {
           message: "user registered",
           user: safeResult,
+        };
+      } catch (error) {
+        console.log(error);
+        throw new Error(error.toString());
+      }
+    },
+
+    loginUser: async (_, { user }, { prisma }) => {
+      try {
+        const myUser = await prisma.users.findFirst({
+          where: { email: user.email },
+        });
+        if (!myUser) {
+          console.log("not match password user");
+          return;
+        }
+        const isMatched = await bcrypt.compare(user.password, myUser.password);
+        if (!isMatched) {
+          console.log("not match password user");
+          return;
+        }
+        const token = jwt.sign({ id: myUser.id.toString() }, JWT_SECRET, {
+          expiresIn: "1h",
+        });
+        const safeResult = {
+          ...myUser,
+          password: undefined,
+          id: myUser.id.toString(),
+        };
+        console.log(safeResult + " result");
+        return {
+          message: "user registered",
+          user: safeResult,
+          token: token,
         };
       } catch (error) {
         console.log(error);

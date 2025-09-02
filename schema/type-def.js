@@ -6,13 +6,23 @@ export const typeDefs = gql`
   }
   type Mutation {
     createUser(user: InputRegister): ResponseRegister
+    loginUser(user: InputLogin): ResponseLogin
   }
   type ResponseRegister {
     message: String!
     user: User
   }
+  type ResponseLogin {
+    message: String!
+    user: User
+    token: String!
+  }
   input InputRegister {
     username: String!
+    email: String!
+    password: String!
+  }
+  input InputLogin {
     email: String!
     password: String!
   }
