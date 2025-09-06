@@ -8,15 +8,12 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: async ({ req }) => {
-    console.log(" req.headers.authorization" + req.headers.authorization);
-
     const token = req.headers.authorization || "";
-    console.log(req.body);
 
     try {
       //const mongo = await setupDataBase();
       const userVerified = verifyToken(token);
-      console.log("token:  " + userVerified); /**/
+
       return { prisma, userVerified };
     } catch (error) {
       console.log("in try/cathc" + error);

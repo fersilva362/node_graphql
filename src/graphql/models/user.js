@@ -33,10 +33,9 @@ comments:[Comment]!
 export const resolvers = {
   Query: {
     user: async (obj, { id }, { mongo }) => {
-      console.log(id);
       try {
         const user = await mongo.users.findOne({ _id: new ObjectId(id) });
-        console.log(user);
+
         return user;
       } catch (error) {
         console.log(error);
@@ -77,7 +76,7 @@ export const resolvers = {
         },
         { returnDocument: "after" }
       );
-      console.log(response);
+
       return response;
     },
   },
@@ -86,7 +85,7 @@ export const resolvers = {
     id: (obj) => obj._id,
     comments: async ({ email }, _, { mongo }) => {
       const response = await mongo.comments.find({ email }).limit(4).toArray();
-      console.log(response);
+
       return response;
     },
   },

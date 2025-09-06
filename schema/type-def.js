@@ -3,10 +3,18 @@ export const typeDefs = gql`
   type Query {
     user(id: ID!): User
     users: [User!]!
+    fetchContacts: [Contact!]
   }
+
   type Mutation {
     createUser(user: InputRegister): ResponseRegister
     loginUser(user: InputLogin): ResponseLogin
+    addContact(email: String): ResponseContact
+    recentContact(email: String): [RecentContact]!
+  }
+  type ResponseContact {
+    message: String!
+    contact: Contact
   }
   type ResponseRegister {
     message: String!
@@ -39,5 +47,10 @@ export const typeDefs = gql`
     user_id: ID!
     id: ID!
     contact_id: ID!
+  }
+  type RecentContact {
+    username: String!
+    email: String!
+    contact_id: String!
   }
 `;

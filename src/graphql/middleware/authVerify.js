@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET || "worlsecretkey";
 
 export const verifyToken = (authHeader) => {
-  console.log("authHeader " + authHeader);
   if (!authHeader) {
     return undefined;
   }

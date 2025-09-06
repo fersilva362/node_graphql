@@ -9,7 +9,6 @@ const yoga = createYoga({
   context: async () => {
     try {
       // const mongo = await setupDataBase();
-      console.log(prisma);
 
       return { prisma };
     } catch (error) {

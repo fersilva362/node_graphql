@@ -8,10 +8,8 @@ const JWT_SECRET = process.env.JWT_SECRET || "worlsecretkey";
 export const resolvers = {
   Query: {
     user: async (obj, { id }, { mongo }) => {
-      console.log(id);
       try {
         const user = await mongo.users.findOne({ _id: new ObjectId(id) });
-        console.log(user);
         return user;
       } catch (error) {
         console.log(error);
@@ -22,7 +20,6 @@ export const resolvers = {
       if (!userVerified) {
         throw new Error("Invalid token");
       }
-      console.log(prisma);
       try {
         const users = await prisma.users.findMany();
         const safeResultArray = users.map((result) => ({
@@ -36,6 +33,33 @@ export const resolvers = {
         throw new Error("Failed to fetch users: " + error.message);
       }
     },
+    fetchContacts: async (_, args, { prisma, userVerified }) => {
+      if (!userVerified) {
+        throw new Error("Invalid token");
+      }
+      const userId = userVerified.id;
+      console.log(userId + "  userId ");
+      try {
+        const result = await prisma.contacts.findMany({
+          where: {
+            user_id: userId, // The user whose contacts we want
+          },
+          select: {
+            contact_id: true,
+            contact: { select: { username: true, email: true } },
+          },
+          orderBy: { contact: { username: "asc" } },
+        });
+        const safeResult = result.map((item) => ({
+          ...item.contact,
+          contact_id: item.contact_id.toString(),
+        }));
+        return safeResult;
+      } catch (error) {
+        console.log(error);
+        throw new Error("error in fetching contacts");
+      }
+    },
   },
   User: {
     id: (obj) => obj._id,
@@ -44,9 +68,7 @@ export const resolvers = {
     createUser: async (_, { user }, { prisma }) => {
       try {
         const handlePassword = await bcrypt.hash(user.password, SALT_ROUNDS);
-        /*  username: String!
-    email: String!
-    password: String! */
+
         const result = await prisma.users.create({
           data: {
             username: user.username,
@@ -59,7 +81,6 @@ export const resolvers = {
           password: undefined,
           id: result.id.toString(),
         };
-        console.log(safeResult + " result");
         return {
           message: "user registered",
           user: safeResult,
@@ -76,7 +97,6 @@ export const resolvers = {
           where: { email: user.email },
         });
         if (!myUser) {
-          console.log("not match password user");
           return;
         }
         const isMatched = await bcrypt.compare(user.password, myUser.password);
@@ -92,7 +112,6 @@ export const resolvers = {
           password: undefined,
           id: myUser.id.toString(),
         };
-        console.log(safeResult + " result");
         return {
           message: "user registered",
           user: safeResult,
@@ -101,6 +120,141 @@ export const resolvers = {
       } catch (error) {
         console.log(error);
         throw new Error(error.toString());
+      }
+    },
+    addContact: async (_, { email }, { prisma, userVerified }) => {
+      if (!userVerified) {
+        throw new Error("Invalid token");
+      }
+      let userId = null;
+      if (userVerified.id) {
+        userId = userVerified.id;
+        console.log(`user is ${userVerified.id}`);
+      }
+
+      let contactId = 0;
+      try {
+        const result = await prisma.users.findMany({
+          where: {
+            email: email,
+          },
+        });
+        console.log(result);
+        if (result.length == 0) {
+          return;
+        } else {
+          contactId = result[0].id;
+          console.log("result.rows[0] " + contactId);
+        }
+      } catch (error) {
+        console.log(error);
+        throw new Error(error);
+      }
+
+      try {
+      } catch (error) {
+        console.log(error);
+        throw new Error(error);
+      }
+
+      try {
+        const result = await prisma.contacts.create({
+          data: {
+            contact_id: contactId,
+            user_id: userId,
+          },
+        });
+        const safeResult = {
+          ...result,
+
+          user_id: result.user_id.toString(),
+          contact_id: result.contact_id.toString(),
+        };
+        console.log(JSON.stringify(safeResult) + " safeResult");
+        return { message: "todo ok", contact: safeResult };
+      } catch (error) {
+        console.log(error);
+        throw new Error(error);
+      }
+      /* 
+
+  try {
+    console.log(contactId + "  contactId***");
+    const result = await pool.query(
+      `
+      INSERT INTO contacts (contact_id, user_id) VALUES ($1,$2)  RETURNING *      
+      `,
+      [contactId, userId]
+    );
+    console.log("add Contact node server");
+    console.log(`conversationId: ${contactId}`);
+    console.log(`userId: ${userId}`);
+    console.log(result.rows);
+    if (result.rowCount == 0) {
+      console.log("Contact already exists");
+      res.status(201).json({ message: "Contact already exists" });
+      //return;
+    } else {
+      console.log(result.rows);
+      res.status(201).json({ message: "Success adding the contact" });
+    }
+
+    // res.status(201).json(result.rows);
+    console.log(performance.now() - start);
+  } catch (error) {
+    res.status(500).json({ error });
+  } */
+    },
+    recentContact: async (_, { email }, { prisma, userVerified }) => {
+      if (!userVerified) {
+        throw new Error("Invalid token");
+      }
+      let userId = null;
+      if (userVerified.id) {
+        userId = userVerified.id;
+        console.log(`user is ${userVerified.id}`);
+      }
+
+      try {
+        console.log(userId);
+        const result = await prisma.contacts.findMany({
+          where: {
+            user_id: userId, // The user whose contacts we want
+          },
+          select: {
+            contact_id: true,
+            created_at: true,
+            contact: { select: { username: true, email: true } },
+          },
+          orderBy: { created_at: "asc" },
+          take: 6,
+        });
+
+        //quiero
+        /* "contact_id": "1",
+    "username": "fersilva",
+    "email": "versilva@" */
+        /*  "user_id": "4",
+      "id": "54",
+      "contact_id": "54",
+      "created_at": "2025-07-01T01:29:07.931Z" */
+
+        if (!result) {
+          res.send("no va por acta");
+
+          return;
+        }
+        console.log(result);
+        const safeResult = result.map((item) => ({
+          ...item.contact,
+          contact_id: item.contact_id.toString(),
+        }));
+        console.log(safeResult);
+
+        return safeResult;
+      } catch (error) {
+        console.log(error);
+        throw new Error(error);
       }
     },
   },
