@@ -11,6 +11,20 @@ export const typeDefs = gql`
     loginUser(user: InputLogin): ResponseLogin
     addContact(email: String): ResponseContact
     recentContact(email: String): [RecentContact]!
+    addOrCreateConversationPrisma(
+      contactId: String!
+    ): ResponseAddOrFetchConversation
+    saveMessagePrisma(
+      conversationId: String!
+      senderId: String!
+      content: String!
+    ): Conversation!
+    fetchAllMessageByConversationPrisma(
+      conversationId: String!
+    ): [Conversation]!
+  }
+  type ResponseAddOrFetchConversation {
+    conversationId: String
   }
   type ResponseContact {
     message: String!
@@ -53,4 +67,15 @@ export const typeDefs = gql`
     email: String!
     contact_id: String!
   }
+  type Conversation {
+    id: String!
+    conversation_id: String!
+    sender_id: String!
+    content: String!
+  }
 `;
+
+/* 
+
+
+*/

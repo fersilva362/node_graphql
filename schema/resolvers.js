@@ -257,5 +257,124 @@ export const resolvers = {
         throw new Error(error);
       }
     },
+    addOrCreateConversationPrisma: async (
+      _,
+      { contactId },
+      { prisma, userVerified }
+    ) => {
+      if (!userVerified) {
+        throw new Error("Invalid token");
+      }
+      let userId = null;
+      if (userVerified.id) {
+        userId = Number(userVerified.id);
+      }
+      if (!contactId) {
+        throw new Error("no valido contactId");
+      }
+      contactId = Number(contactId);
+
+      try {
+        const result = await prisma.conversations.findMany({
+          where: {
+            OR: [
+              {
+                participant_one: contactId,
+                participant_two: userId,
+              },
+              {
+                participant_two: contactId,
+                participant_one: userId,
+              },
+            ],
+          },
+
+          take: 1,
+        });
+        console.log(contactId + " contactID  " + " userId  " + userId);
+        console.log(result.length + "result");
+
+        if (result.length != 0) {
+          const ConversatinIdExisting = result[0].id;
+
+          return { conversationId: ConversatinIdExisting };
+        }
+
+        try {
+          const newConversation = await prisma.conversations.create({
+            data: { participant_two: contactId, participant_one: userId },
+            select: { id: true },
+          });
+          console.log(newConversation.id.toString() + "newConversation.id");
+          const newConversatinId = newConversation.id.toString();
+
+          return { conversationId: newConversatinId };
+        } catch (error) {
+          console.log(error + " error in try add");
+          throw new Error(error);
+        }
+      } catch (error) {
+        console.log(error + " error in try add");
+        throw new Error(error);
+      }
+    },
+    saveMessagePrisma: async (
+      _,
+      { conversationId, senderId, content },
+      { prisma, userVerified }
+    ) => {
+      try {
+        const result = await prisma.messages.create({
+          data: {
+            conversation_id: conversationId,
+            sender_id: Number(senderId),
+            content: content,
+          },
+        });
+
+        const safeResult = {
+          ...result,
+          sender_id: result.sender_id?.toString(),
+        };
+
+        return safeResult;
+      } catch (error) {
+        throw new Error("faile to save ");
+      }
+    },
+    fetchAllMessageByConversationPrisma: async (
+      _,
+      { conversationId },
+      { prisma, userVerified }
+    ) => {
+      console.log(conversationId);
+      try {
+        const response = await prisma.messages.findMany({
+          where: { conversation_id: conversationId },
+          select: {
+            id: true,
+            content: true,
+            sender_id: true,
+            conversation_id: true,
+            created_at: true,
+          },
+          orderBy: { created_at: "asc" },
+        });
+
+        const safeResult = response.map((conversation) => ({
+          ...conversation,
+          id: conversation.id.toString(),
+          sender_id: conversation.sender_id?.toString(),
+          conversation_id: conversation.conversation_id?.toString(),
+        }));
+        console.log(JSON.stringify(safeResult) + " safeResult prisma");
+        return safeResult;
+      } catch (error) {
+        console.log(error);
+        throw new Error(error);
+      }
+    },
   },
 };
+
+/*  */

@@ -16,7 +16,7 @@ const server = new ApolloServer({
 
       return { prisma, userVerified };
     } catch (error) {
-      console.log("in try/cathc" + error);
+      console.log("in try/cathc index.js" + error);
       return {};
     }
   },
