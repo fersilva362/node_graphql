@@ -323,6 +323,9 @@ export const resolvers = {
       { conversationId, senderId, content },
       { prisma, userVerified }
     ) => {
+      if (!userVerified) {
+        throw new Error("Invalid token");
+      }
       try {
         const result = await prisma.messages.create({
           data: {
@@ -348,6 +351,9 @@ export const resolvers = {
       { prisma, userVerified }
     ) => {
       console.log(conversationId);
+      if (!userVerified) {
+        throw new Error("Invalid token");
+      }
       try {
         const response = await prisma.messages.findMany({
           where: { conversation_id: conversationId },
