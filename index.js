@@ -9,7 +9,7 @@ const server = new ApolloServer({
   resolvers,
   context: async ({ req }) => {
     const token = req.headers.authorization || "";
-    console.log(token + " token");
+    console.log(token + " >>token");
 
     try {
       //const mongo = await setupDataBase();

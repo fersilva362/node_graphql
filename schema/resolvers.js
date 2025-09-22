@@ -61,9 +61,9 @@ export const resolvers = {
       }
     },
   },
-  User: {
+  /* User: {
     id: (obj) => obj._id,
-  },
+  }, */
   Mutation: {
     createUser: async (_, { user }, { prisma }) => {
       try {
@@ -99,6 +99,7 @@ export const resolvers = {
         if (!myUser) {
           return;
         }
+
         const isMatched = await bcrypt.compare(user.password, myUser.password);
         if (!isMatched) {
           console.log("not match password user");
@@ -107,11 +108,20 @@ export const resolvers = {
         const token = jwt.sign({ id: myUser.id.toString() }, JWT_SECRET, {
           expiresIn: "1h",
         });
+
         const safeResult = {
           ...myUser,
           password: undefined,
           id: myUser.id.toString(),
         };
+
+        console.log(
+          JSON.stringify({
+            message: "user registered",
+            user: safeResult,
+            token: token,
+          }) + "  result"
+        );
         return {
           message: "user registered",
           user: safeResult,
