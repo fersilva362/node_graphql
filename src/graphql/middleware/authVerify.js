@@ -20,7 +20,7 @@ export const verifyToken = (authHeader) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    console.log(decoded + " decoded");
+    //console.log(decoded + " decoded");
     return decoded;
   } catch (error) {
     throw new Error("Invalid token");

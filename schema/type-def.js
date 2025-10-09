@@ -4,6 +4,7 @@ export const typeDefs = gql`
     user(id: ID!): User
     users: [User!]!
     fetchContacts: [Contact!]
+    fetchConversations: [FetcConversationType!]
   }
 
   type Mutation {
@@ -72,6 +73,13 @@ export const typeDefs = gql`
     conversation_id: String!
     sender_id: String!
     content: String!
+  }
+
+  type FetcConversationType {
+    conversation_id: String!
+    participant_name: String!
+    last_message: String
+    last_message_time: String
   }
 `;
 

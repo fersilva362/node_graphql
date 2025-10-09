@@ -60,6 +60,96 @@ export const resolvers = {
         throw new Error("error in fetching contacts");
       }
     },
+
+    fetchConversations: async (_, args, { prisma, userVerified }) => {
+      if (!userVerified) {
+        throw new Error("Invalid token");
+      }
+      const userId = userVerified.id;
+      console.log(userId + "  userId ");
+      try {
+        const result = await prisma.conversations.findMany({
+          where: {
+            OR: [{ participant_one: userId }, { participant_two: userId }],
+          },
+          include: {
+            // Get the other participant's user data
+            users_conversations_participant_oneTousers: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+            users_conversations_participant_twoTousers: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+            // Get the last message using orderBy and take
+            messages: {
+              orderBy: {
+                created_at: "desc",
+              },
+              take: 1,
+              select: {
+                content: true,
+                created_at: true,
+              },
+            },
+          },
+        });
+        /* result deberia se List    {required super.id,
+      required super.participantName,
+      required super.lastMessage,
+      required super.lastMessageTime}); 
+        id: json['conversation_id'],
+        participantName: json['participant_name'],
+        lastMessage: json['last_message'],
+        lastMessageTime: json['last_message_time'])
+      
+      
+      */
+        if (result.length != 0) {
+          const safeResult = result.map((item) => ({
+            ...item,
+            participant_one: item.participant_one.toString(),
+            participant_two: item.participant_two.toString(),
+            users_conversations_participant_twoTousers: {
+              ...item.users_conversations_participant_twoTousers,
+              id: item.users_conversations_participant_twoTousers.id.toString(),
+            },
+            users_conversations_participant_oneTousers: {
+              ...item.users_conversations_participant_oneTousers,
+              id: item.users_conversations_participant_oneTousers.id.toString(),
+            },
+          }));
+          const mySafeResult = safeResult.map((result) => {
+            const participant_name =
+              result.participant_one == userId
+                ? result.participant_two
+                : result.participant_one;
+            const last_message = result.messages[0]?.content || "";
+            const last_message_time = result.messages[0]?.created_at || "";
+
+            return {
+              conversation_id: result.id,
+              participant_name: participant_name,
+              last_message: last_message,
+              last_message_time: last_message_time,
+            };
+          });
+          console.log(JSON.stringify(mySafeResult) + " >> mySafeResult");
+          return mySafeResult;
+        } else {
+          console.log("empty");
+          return [];
+        }
+      } catch (error) {
+        console.log(error);
+        throw new Error("error in fetching conversations");
+      }
+    },
   },
   /* User: {
     id: (obj) => obj._id,
