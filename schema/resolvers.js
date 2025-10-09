@@ -124,11 +124,14 @@ export const resolvers = {
               id: item.users_conversations_participant_oneTousers.id.toString(),
             },
           }));
+          //console.log(JSON.stringify(safeResult));
+          console.log(safeResult.length);
+
           const mySafeResult = safeResult.map((result) => {
             const participant_name =
               result.participant_one == userId
-                ? result.participant_two
-                : result.participant_one;
+                ? result.users_conversations_participant_twoTousers.username
+                : result.users_conversations_participant_oneTousers.username;
             const last_message = result.messages[0]?.content || "";
             const last_message_time = result.messages[0]?.created_at || "";
 
@@ -139,7 +142,7 @@ export const resolvers = {
               last_message_time: last_message_time,
             };
           });
-          console.log(JSON.stringify(mySafeResult) + " >> mySafeResult");
+
           return mySafeResult;
         } else {
           console.log("empty");
