@@ -13,8 +13,8 @@ model contacts {
   id         Int       @id @default(autoincrement())
   contact_id BigInt
   created_at DateTime? @default(now()) @db.Timestamp(6)
-  contact users @relation("data_contact", fields: [contact_id], references: [id])
-  users      users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usr_id")
+  contact    users     @relation("data_contact", fields: [contact_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "contact_id")
+  users      users     @relation("data_contact2", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "usr_id")
 }
 
 model conversations {
@@ -42,9 +42,9 @@ model users {
   username                                           String          @db.VarChar(50)
   email                                              String          @db.VarChar(50)
   password                                           String          @db.VarChar(100)
-  contacts                                           contacts[]
+  contact                                            contacts[]      @relation("data_contact")
+  contacts                                           contacts[]      @relation("data_contact2")
   conversations_conversations_participant_oneTousers conversations[] @relation("conversations_participant_oneTousers")
   conversations_conversations_participant_twoTousers conversations[] @relation("conversations_participant_twoTousers")
   messages                                           messages[]
-  contact contacts[] @relation("data_contact")
 }

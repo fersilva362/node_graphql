@@ -33,6 +33,57 @@ export const resolvers = {
         throw new Error("Failed to fetch users: " + error.message);
       }
     },
+
+    /* 
+    
+  SELECT u.id as contact_id, u.username, u.email FROM contacts c
+      JOIN users u ON u.id = contact_id
+      WHERE c.user_id=$1
+      ORDER BY c.created_at ASC 
+      LIMIT 6
+      
+      */
+
+    fetchRecentContacts: async (_, args, { prisma, userVerified }) => {
+      if (!userVerified) {
+        throw new Error("Invalid token");
+      }
+      const userId = userVerified.id;
+      console.log(userId + "  userId ");
+      try {
+        const result = await prisma.contacts.findMany({
+          where: {
+            user_id: userId, // The user whose contacts we want
+          },
+          /* select: {
+            contact_id: true,
+            created_at: true,
+          }, */
+
+          include: { contact: { select: { email: true, username: true } } },
+          orderBy: { created_at: "asc" },
+          take: 6,
+        });
+
+        const safeResult = result.map((item) => ({
+          email: item.contact.email,
+          contact_id: item.contact_id.toString(),
+          username: item.contact.username,
+        }));
+
+        console.log(JSON.stringify(safeResult));
+
+        return safeResult;
+
+        /* esperado array id: json['contact_id'],
+        username: json['username'],
+        email: json['email']); */
+      } catch (error) {
+        console.log(error);
+        throw new Error("error in fetching contacts");
+      }
+    },
+
     fetchContacts: async (_, args, { prisma, userVerified }) => {
       if (!userVerified) {
         throw new Error("Invalid token");
@@ -44,14 +95,18 @@ export const resolvers = {
           where: {
             user_id: userId, // The user whose contacts we want
           },
-          select: {
+          /* select: {
             contact_id: true,
-            contact: { select: { username: true, email: true } },
+          }, */
+          include: {
+            contacts: { select: { username: true, email: true } },
+            users: { username },
           },
           orderBy: { contact: { username: "asc" } },
         });
         const safeResult = result.map((item) => ({
           ...item.contact,
+          ...item.users,
           contact_id: item.contact_id.toString(),
         }));
         return safeResult;
@@ -186,6 +241,7 @@ export const resolvers = {
 
     loginUser: async (_, { user }, { prisma }) => {
       try {
+        console.log(JSON.stringify(user) + "suer");
         const myUser = await prisma.users.findFirst({
           where: { email: user.email },
         });
