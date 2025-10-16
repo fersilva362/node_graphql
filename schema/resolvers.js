@@ -34,15 +34,39 @@ export const resolvers = {
       }
     },
 
-    /* 
-    
-  SELECT u.id as contact_id, u.username, u.email FROM contacts c
-      JOIN users u ON u.id = contact_id
-      WHERE c.user_id=$1
-      ORDER BY c.created_at ASC 
-      LIMIT 6
-      
-      */
+    fetchAllMessageByConversation: async (
+      _,
+      { conversationId },
+      { prisma, userVerified }
+    ) => {
+      if (!userVerified) {
+        throw new Error("Invalid token");
+      }
+      try {
+        const response = await prisma.messages.findMany({
+          where: { conversation_id: conversationId },
+          select: {
+            id: true,
+            content: true,
+            sender_id: true,
+            conversation_id: true,
+            created_at: true,
+          },
+          orderBy: { created_at: "asc" },
+        });
+        const safeResult = response.map((conversation) => ({
+          ...conversation,
+          id: conversation.id.toString(),
+          sender_id: conversation.sender_id?.toString(),
+          conversation_id: conversation.conversation_id?.toString(),
+        }));
+        console.log(JSON.stringify(safeResult) + " safeResult prisma");
+        return safeResult;
+      } catch (error) {
+        console.log(error);
+        throw new Error("error in fetch All Message By Conversation");
+      }
+    },
 
     fetchRecentContacts: async (_, args, { prisma, userVerified }) => {
       if (!userVerified) {

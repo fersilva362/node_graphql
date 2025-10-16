@@ -6,6 +6,7 @@ export const typeDefs = gql`
     fetchContacts: [Contact!]
     fetchConversations: [FetcConversationType!]
     fetchRecentContacts: [MyRecentContacts]
+    fetchAllMessageByConversation(conversationId: String!): [FetchMessageType]
   }
 
   type Mutation {
@@ -93,6 +94,14 @@ export const typeDefs = gql`
     username: String!
     email: String!
     # Remove contact_id and created_at from here
+  }
+
+  type FetchMessageType {
+     id: : String!
+    senderId: String!
+    content: String!
+    createdAt: String!    
+    conversation_id:String!
   }
 `;
 
