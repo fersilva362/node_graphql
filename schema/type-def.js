@@ -61,8 +61,8 @@ export const typeDefs = gql`
   }
 
   type Contact {
-    user_id: ID!
-    id: ID!
+    email: String!
+    username: String!
     contact_id: ID!
   }
   type RecentContact {

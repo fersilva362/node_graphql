@@ -87,18 +87,19 @@ export const resolvers = {
           },
           /* select: {
             contact_id: true,
+            created_at: true,
           }, */
-          include: {
-            contacts: { select: { username: true, email: true } },
-            users: { username },
-          },
+
+          include: { contact: { select: { email: true, username: true } } },
           orderBy: { contact: { username: "asc" } },
         });
+
         const safeResult = result.map((item) => ({
-          ...item.contact,
-          ...item.users,
+          email: item.contact.email,
           contact_id: item.contact_id.toString(),
+          username: item.contact.username,
         }));
+        console.log(JSON.stringify(safeResult) + " < saferesult");
         return safeResult;
       } catch (error) {
         console.log(error);
