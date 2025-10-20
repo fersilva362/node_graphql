@@ -61,7 +61,7 @@ export const resolvers = {
           username: item.contact.username,
         }));
 
-        console.log(JSON.stringify(safeResult));
+        console.log(JSON.stringify(safeResult) + "<< safeResult");
 
         return safeResult;
 
