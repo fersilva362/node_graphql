@@ -8,15 +8,14 @@ export const verifyToken = (authHeader) => {
   }
 
   const arrayToken = authHeader?.split(" ");
-  console.log(arrayToken + ">arrayToken");
+
   let token = "";
   if (arrayToken[1]) {
     token = arrayToken[1];
   } else {
     token = authHeader;
   }
-  console.log(arrayToken[1]);
-  console.log(token + " verify token");
+
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
 

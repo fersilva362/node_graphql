@@ -179,41 +179,23 @@ export const resolvers = {
             },
           },
         });
-        /* result deberia se List    {required super.id,
-      required super.participantName,
-      required super.lastMessage,
-      required super.lastMessageTime}); 
-        id: json['conversation_id'],
-        participantName: json['participant_name'],
-        lastMessage: json['last_message'],
-        lastMessageTime: json['last_message_time'])
-      
-      
-      */
 
         if (result.length != 0) {
-          const safeResult = result.map((item) => ({
-            ...item,
+          const safeResult = result.filter((item) => {
+            return (
+              item.participant_two !== null && item.participant_one !== null
+            );
+          });
+          /* console.log(safeResult); */
 
-            participant_one: item.participant_one.toString(),
-            participant_two: item.participant_two.toString(),
-            users_conversations_participant_twoTousers: {
-              ...item.users_conversations_participant_twoTousers,
-              id: item.users_conversations_participant_twoTousers.id.toString(),
-            },
-            users_conversations_participant_oneTousers: {
-              ...item.users_conversations_participant_oneTousers,
-              id: item.users_conversations_participant_oneTousers.id.toString(),
-            },
-          }));
-          console.log(safeResult.length);
-          const mySafeResult = result.map((result) => {
+          const mySafeResult = safeResult.map((result) => {
             const participant_name =
               result.participant_one == userId
                 ? result.users_conversations_participant_twoTousers.username
                 : result.users_conversations_participant_oneTousers.username;
             const last_message = result.messages[0]?.content || "";
             const last_message_time = result.messages[0]?.created_at || "";
+            /* console.log(participant_name + " participant_name"); */
 
             return {
               conversation_id: result.id,
@@ -222,6 +204,7 @@ export const resolvers = {
               last_message_time: last_message_time,
             };
           });
+          /* console.log(JSON.stringify(mySafeResult)); */
 
           return mySafeResult;
         } else {
