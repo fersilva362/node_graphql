@@ -190,9 +190,11 @@ export const resolvers = {
       
       
       */
+
         if (result.length != 0) {
           const safeResult = result.map((item) => ({
             ...item,
+
             participant_one: item.participant_one.toString(),
             participant_two: item.participant_two.toString(),
             users_conversations_participant_twoTousers: {
@@ -204,10 +206,8 @@ export const resolvers = {
               id: item.users_conversations_participant_oneTousers.id.toString(),
             },
           }));
-          //console.log(JSON.stringify(safeResult));
           console.log(safeResult.length);
-
-          const mySafeResult = safeResult.map((result) => {
+          const mySafeResult = result.map((result) => {
             const participant_name =
               result.participant_one == userId
                 ? result.users_conversations_participant_twoTousers.username
